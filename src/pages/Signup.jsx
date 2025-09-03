@@ -4,7 +4,7 @@ import { AuthContext } from "../contexts/AuthContext";
 
 export default function Signup() {
   const { signup } = useContext(AuthContext);
-  const [name, setName] = useState("");
+  const [username, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("customer");
@@ -17,7 +17,7 @@ export default function Signup() {
     setLoading(true);
     setError("");
     try {
-      await signup({ name, email, password, role });
+      await signup({ username, email, password, role });
       navigate("/inbox");
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
@@ -45,7 +45,7 @@ export default function Signup() {
           </label>
           <input
             required
-            value={name}
+            value={username}
             onChange={(e) => setName(e.target.value)}
             placeholder="Obitope Eniola Nathaniel"
             className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-600 dark:focus:ring-gray-400"

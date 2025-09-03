@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { useContext, createContext } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -8,44 +8,53 @@ import ChatView from "./pages/ChatView";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import { AuthContext } from "./contexts/AuthContext";
+import { useAbly } from "./hooks/useAbly";
 
-export default function App() {
+// ✅ Global Ably context
+export const AblyContext = createContext(null);
+
+// 🔒 Private route wrapper
+function PrivateRoute({ children, roles }) {
   const { user } = useContext(AuthContext);
 
-  return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route
-          path="/"
-          element={user ? <Navigate to="/inbox" /> : <Navigate to="/login" />}
-        />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-        {/* Protected */}
-        <Route
-          path="/inbox"
-          element={user ? <Inbox /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/chat/:id"
-          element={user ? <ChatView /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/profile"
-          element={user ? <Profile /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/admin"
-          element={
-            user && user.role === "admin" ? (
-              <AdminDashboard />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-      </Route>
-    </Routes>
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children || <Outlet />;
+}
+
+export default function App() {
+  const ably = useAbly();
+
+  return (
+    <AblyContext.Provider value={ably}>
+      <Routes>
+        <Route element={<Layout />}>
+          {/* Default redirect */}
+          <Route path="/" element={<Navigate to="/inbox" replace />} />
+
+          {/* Public */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Protected routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/inbox" element={<Inbox />} />
+            <Route path="/chat/:id" element={<ChatView />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+
+          {/* Admin-only */}
+          <Route element={<PrivateRoute roles={["admin"]} />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
+        </Route>
+      </Routes>
+    </AblyContext.Provider>
   );
 }

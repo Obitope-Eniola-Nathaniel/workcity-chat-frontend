@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
-import jwt_decode from "jwt-decode"; // use this import with Vite
+import jwt_decode from "jwt-decode"; // safe decode
 import api from "../api/apiClient";
+import { createAblyClient } from "../ably/ablyClient"; // ✅ import ably client
 
 export const AuthContext = createContext();
 
@@ -15,8 +16,8 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const decoded = jwt_decode(token); // decode token safely
-      setUser({ id: decoded.id, role: decoded.role, ...decoded });
+      const decoded = jwt_decode(token);
+      setUser({ id: decoded._id, role: decoded.role, ...decoded }); // ✅ fix: use _id from JWT
     } catch (err) {
       console.error("Invalid token:", err);
       setUser(null);
@@ -55,6 +56,17 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
     localStorage.removeItem("token");
+
+    // ✅ Cleanly close Ably connection on logout
+    try {
+      const client = createAblyClient(token);
+      if (client) {
+        client.close();
+        console.log("👋 Ably disconnected on logout");
+      }
+    } catch (err) {
+      console.warn("No active Ably client to close:", err.message);
+    }
   };
 
   return (
