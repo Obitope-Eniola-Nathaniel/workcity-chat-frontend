@@ -1,61 +1,74 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function Signup() {
   const { signup } = useContext(AuthContext);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "customer",
-  });
-  const nav = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("customer");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
-    await signup(form);
-    nav("/");
+    setLoading(true);
+    setError("");
+    try {
+      await signup({ name, email, password, role });
+      navigate("/inbox");
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-md p-6 bg-white rounded shadow"
-      >
-        <h1 className="text-2xl font-semibold mb-4">Sign up</h1>
+    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow">
+      <h2 className="text-2xl font-semibold mb-4">Create account</h2>
+      {error && <div className="mb-3 text-red-500">{error}</div>}
+      <form onSubmit={submit} className="space-y-3">
         <input
-          className="w-full p-2 border mb-3"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Full name"
+          className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-900"
         />
         <input
-          className="w-full p-2 border mb-3"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-900"
         />
         <input
-          type="password"
-          className="w-full p-2 border mb-3"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          type="password"
+          className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-900"
         />
         <select
-          className="w-full p-2 border mb-3"
-          value={form.role}
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-900"
         >
           <option value="customer">Customer</option>
           <option value="merchant">Merchant</option>
           <option value="designer">Designer</option>
           <option value="agent">Agent</option>
         </select>
-        <button className="w-full p-2 bg-green-600 text-white">
-          Create account
+
+        <button
+          className="w-full py-2 bg-green-600 text-white rounded"
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Create account"}
         </button>
       </form>
     </div>

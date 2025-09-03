@@ -1,43 +1,51 @@
 import React, { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Routes, Route } from "react-router-dom";
-import "./index.css";
-
+import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Inbox from "./pages/Inbox";
 import ChatView from "./pages/ChatView";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 import { AuthContext } from "./contexts/AuthContext";
 
-function PrivateRoute({ children }) {
+export default function App() {
   const { user } = useContext(AuthContext);
-  return user ? children : <Navigate to="/login" replace />;
-}
-function App() {
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+    <Routes>
+      <Route element={<Layout />}>
         <Route
           path="/"
-          element={
-            <PrivateRoute>
-              <Inbox />
-            </PrivateRoute>
-          }
+          element={user ? <Navigate to="/inbox" /> : <Navigate to="/login" />}
+        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Protected */}
+        <Route
+          path="/inbox"
+          element={user ? <Inbox /> : <Navigate to="/login" />}
         />
         <Route
           path="/chat/:id"
+          element={user ? <ChatView /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/profile"
+          element={user ? <Profile /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/admin"
           element={
-            <PrivateRoute>
-              <ChatView />
-            </PrivateRoute>
+            user && user.role === "admin" ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/" />
+            )
           }
         />
-      </Routes>
-    </div>
+      </Route>
+    </Routes>
   );
 }
-
-export default App;
