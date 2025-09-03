@@ -26,7 +26,7 @@ export default function Login() {
 
   return (
     <div className="max-w-md mx-auto bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg mt-20">
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+      <h2 className="text-xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
         Welcome Back 👋
       </h2>
 
