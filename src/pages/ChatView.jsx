@@ -15,7 +15,7 @@ export default function ChatView() {
   const channelRef = useRef(null);
   const scrollRef = useRef();
 
-  // 🔹 Load history
+  // Load history
   useEffect(() => {
     if (!user || !conversationId) return;
 
@@ -61,7 +61,7 @@ export default function ChatView() {
 
     // Presence tracking
     channel.presence.enter({
-      userId: user._id, // ✅ use _id from backend
+      userId: user._id, // use _id from backend
       name: user.username,
     });
 
@@ -106,7 +106,7 @@ export default function ChatView() {
     }
   };
 
-  // 🔹 Send typing event
+  // Send typing event
   const sendTyping = (isTyping) => {
     if (!channelRef.current) return;
     channelRef.current.publish("typing", {

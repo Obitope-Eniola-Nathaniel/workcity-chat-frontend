@@ -24,7 +24,7 @@ export default function Inbox() {
     const loadConvos = async () => {
       setLoading(true);
       try {
-        const res = await api.get("/conversations");
+        const res = await api.get("/conversations/");
         setConvos(res.data || []);
       } catch (err) {
         console.error("Error loading conversations:", err);
