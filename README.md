@@ -123,7 +123,7 @@ export default api;
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 src/
