@@ -11,7 +11,7 @@ export default function ChatMessage({ message, mine = false }) {
   // fallback for sender name
   const senderName = mine
     ? "You"
-    : message.sender?.username || message.sender?.name || "Unknown";
+    : message.sender?.username || message.sender?.name || "Me";
 
   // check message status (optimistic UI)
   const isTemp = message._id?.startsWith("temp-");

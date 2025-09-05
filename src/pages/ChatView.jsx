@@ -35,7 +35,7 @@ export default function ChatView() {
     };
   }, [conversationId, user]);
 
-  // 🔹 Setup Ably channel
+  // Setup Ably channel
   useEffect(() => {
     if (!ably || !user || !conversationId) return;
 
@@ -45,7 +45,14 @@ export default function ChatView() {
     // Listen for new messages
     channel.subscribe("new-message", (msg) => {
       const incoming = msg.data.message || msg.data;
-      setMessages((prev) => [...prev, incoming]);
+
+      // Replace optimistic temp message if exists
+      setMessages((prev) => {
+        const withoutTemp = prev.filter(
+          (m) => !(m.pending && m.content === incoming.content)
+        );
+        return [...withoutTemp, incoming];
+      });
 
       // Auto-scroll
       setTimeout(
@@ -54,14 +61,14 @@ export default function ChatView() {
       );
     });
 
-    // Typing indicators (expand later)
+    // Typing indicators
     channel.subscribe("typing", (msg) => {
       console.log("typing event:", msg.data);
     });
 
-    // Presence tracking
+    // Presence
     channel.presence.enter({
-      userId: user._id, // use _id from backend
+      userId: user._id,
       name: user.username,
     });
 
@@ -76,7 +83,7 @@ export default function ChatView() {
     };
   }, [ably, conversationId, user]);
 
-  // 🔹 Send message
+  // Send message
   const sendMessage = async (text) => {
     if (!text?.trim()) return;
 
@@ -91,17 +98,14 @@ export default function ChatView() {
     setMessages((prev) => [...prev, optimistic]);
 
     try {
-      const res = await api.post(`/messages/${conversationId}`, {
-        content: text,
-      });
-
-      // Replace temp with real message
-      setMessages((prev) => prev.map((m) => (m._id === tempId ? res.data : m)));
+      await api.post(`/messages/${conversationId}`, { content: text });
+      // ✅ no setMessages here — Ably will deliver the real message
     } catch (err) {
       console.error("Send failed:", err);
-      // Optionally mark as failed
       setMessages((prev) =>
-        prev.map((m) => (m._id === tempId ? { ...m, failed: true } : m))
+        prev.map((m) =>
+          m._id === tempId ? { ...m, failed: true, pending: false } : m
+        )
       );
     }
   };
@@ -125,6 +129,7 @@ export default function ChatView() {
               message={m}
               mine={m.sender?._id === user._id}
               failed={m.failed}
+              pending={m.pending}
             />
           </div>
         ))}
